@@ -3,6 +3,8 @@ export interface ResponseState {
   timeMs: number | null;
   sizeKb: number | null;
   data: unknown | null;
+  outcome: "success" | "error" | null;
+  errorMessage: string | null;
 }
 
 interface ResponsePanelProps {
@@ -11,13 +13,20 @@ interface ResponsePanelProps {
 }
 
 export function ResponsePanel({ response, isLoading }: ResponsePanelProps) {
+  const isSuccess = response.outcome === "success";
+  const isError = response.outcome === "error";
   const hasResponse = response.data !== null;
   const responseBody = hasResponse ? JSON.stringify(response.data, null, 2) : "";
-  const statusLabel =
-    response.status === null ? "--" : response.status < 400 ? `${response.status} OK` : `${response.status} Error`;
+  const statusLabel = response.status === null ? "--" : isError ? `${response.status} Error` : `${response.status} OK`;
   const timeLabel = response.timeMs === null ? "-- ms" : `${response.timeMs} ms`;
   const sizeLabel = response.sizeKb === null ? "-- KB" : `${response.sizeKb} KB`;
-  const responseTag = isLoading ? "Loading..." : hasResponse ? "Mock response" : "No response";
+  const responseTag = isLoading ? "Loading..." : isSuccess ? "Mock success" : isError ? "Mock error" : "No response";
+  const statusBadgeClass =
+    response.status === null
+      ? "border-zinc-300 bg-zinc-100 text-zinc-700"
+      : isError
+      ? "border-rose-200 bg-rose-50 text-rose-700"
+      : "border-emerald-200 bg-emerald-50 text-emerald-700";
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -37,7 +46,9 @@ export function ResponsePanel({ response, isLoading }: ResponsePanelProps) {
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5">
           <p className="text-xs uppercase tracking-wide text-zinc-500">Status</p>
           <div className="mt-1">
-            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${statusBadgeClass}`}
+            >
               {statusLabel}
             </span>
           </div>
@@ -52,6 +63,12 @@ export function ResponsePanel({ response, isLoading }: ResponsePanelProps) {
         </div>
       </div>
 
+      {!isLoading && isError && response.errorMessage ? (
+        <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {response.errorMessage}
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-hidden rounded-xl border border-zinc-200">
         <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-2">
           <p className="text-sm font-medium text-zinc-700">Response Body</p>
@@ -65,7 +82,7 @@ export function ResponsePanel({ response, isLoading }: ResponsePanelProps) {
               Sending request...
             </div>
           </div>
-        ) : hasResponse ? (
+        ) : isSuccess || isError ? (
           <pre className="min-h-64 overflow-x-auto bg-zinc-950 p-4 font-mono text-sm leading-6 text-zinc-100">
             {responseBody}
           </pre>

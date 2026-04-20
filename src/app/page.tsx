@@ -26,6 +26,8 @@ export default function Home() {
     timeMs: null,
     sizeKb: null,
     data: null,
+    outcome: null,
+    errorMessage: null,
   });
 
   const handleMethodChange = (method: HttpMethod) => {
@@ -47,12 +49,40 @@ export default function Home() {
       timeMs: null,
       sizeKb: null,
       data: null,
+      outcome: null,
+      errorMessage: null,
     });
 
     const startedAt = Date.now();
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    const fakeData = {
+    const shouldFail = request.url.toLowerCase().includes("fail");
+
+    if (shouldFail) {
+      const fakeError = {
+        success: false,
+        error: "Simulated request failure",
+        request: {
+          method: request.method,
+          url: request.url,
+        },
+      };
+
+      const responseBody = JSON.stringify(fakeError);
+
+      setResponse({
+        status: 500,
+        timeMs: Date.now() - startedAt,
+        sizeKb: Number((responseBody.length / 1024).toFixed(2)),
+        data: fakeError,
+        outcome: "error",
+        errorMessage: "Fake error mode is active. Use a URL without 'fail' to simulate success.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const fakeSuccess = {
       success: true,
       message: "Mock response received.",
       request: {
@@ -65,13 +95,15 @@ export default function Home() {
       ],
     };
 
-    const responseBody = JSON.stringify(fakeData);
+    const responseBody = JSON.stringify(fakeSuccess);
 
     setResponse({
       status: 200,
       timeMs: Date.now() - startedAt,
       sizeKb: Number((responseBody.length / 1024).toFixed(2)),
-      data: fakeData,
+      data: fakeSuccess,
+      outcome: "success",
+      errorMessage: null,
     });
     setLoading(false);
   };
