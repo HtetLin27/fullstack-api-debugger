@@ -20,18 +20,12 @@ export default function Home() {
     activeTab: "Params",
   });
 
-  const [response] = useState<ResponseState>({
-    status: 200,
-    timeMs: 123,
-    sizeKb: 1.4,
-    data: {
-      success: true,
-      message: "User list loaded",
-      data: [
-        { id: 1, name: "Alice" },
-        { id: 2, name: "Bob" },
-      ],
-    },
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState<ResponseState>({
+    status: null,
+    timeMs: null,
+    sizeKb: null,
+    data: null,
   });
 
   const handleMethodChange = (method: HttpMethod) => {
@@ -46,8 +40,40 @@ export default function Home() {
     setRequest((previous) => ({ ...previous, activeTab }));
   };
 
-  const handleSend = () => {
-    // Intentionally empty for now. Real request logic comes in a later step.
+  const handleSend = async () => {
+    setLoading(true);
+    setResponse({
+      status: null,
+      timeMs: null,
+      sizeKb: null,
+      data: null,
+    });
+
+    const startedAt = Date.now();
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const fakeData = {
+      success: true,
+      message: "Mock response received.",
+      request: {
+        method: request.method,
+        url: request.url,
+      },
+      data: [
+        { id: 1, name: "Alice" },
+        { id: 2, name: "Bob" },
+      ],
+    };
+
+    const responseBody = JSON.stringify(fakeData);
+
+    setResponse({
+      status: 200,
+      timeMs: Date.now() - startedAt,
+      sizeKb: Number((responseBody.length / 1024).toFixed(2)),
+      data: fakeData,
+    });
+    setLoading(false);
   };
 
   return (
@@ -57,12 +83,13 @@ export default function Home() {
         <section className="grid gap-6 lg:grid-cols-2">
           <RequestPanel
             request={request}
+            isLoading={loading}
             onMethodChange={handleMethodChange}
             onUrlChange={handleUrlChange}
             onTabChange={handleTabChange}
             onSend={handleSend}
           />
-          <ResponsePanel response={response} />
+          <ResponsePanel response={response} isLoading={loading} />
         </section>
       </main>
     </div>

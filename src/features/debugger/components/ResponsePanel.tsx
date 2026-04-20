@@ -7,15 +7,17 @@ export interface ResponseState {
 
 interface ResponsePanelProps {
   response: ResponseState;
+  isLoading: boolean;
 }
 
-export function ResponsePanel({ response }: ResponsePanelProps) {
+export function ResponsePanel({ response, isLoading }: ResponsePanelProps) {
   const hasResponse = response.data !== null;
   const responseBody = hasResponse ? JSON.stringify(response.data, null, 2) : "";
   const statusLabel =
     response.status === null ? "--" : response.status < 400 ? `${response.status} OK` : `${response.status} Error`;
   const timeLabel = response.timeMs === null ? "-- ms" : `${response.timeMs} ms`;
   const sizeLabel = response.sizeKb === null ? "-- KB" : `${response.sizeKb} KB`;
+  const responseTag = isLoading ? "Loading..." : hasResponse ? "Mock response" : "No response";
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -27,7 +29,7 @@ export function ResponsePanel({ response }: ResponsePanelProps) {
           </p>
         </div>
         <span className="inline-flex items-center rounded-full border border-zinc-300 bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700">
-          Placeholder
+          {responseTag}
         </span>
       </div>
 
@@ -57,7 +59,13 @@ export function ResponsePanel({ response }: ResponsePanelProps) {
             JSON
           </span>
         </div>
-        {hasResponse ? (
+        {isLoading ? (
+          <div className="min-h-64 bg-zinc-50 p-4">
+            <div className="flex h-full min-h-56 items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-white text-sm text-zinc-500">
+              Sending request...
+            </div>
+          </div>
+        ) : hasResponse ? (
           <pre className="min-h-64 overflow-x-auto bg-zinc-950 p-4 font-mono text-sm leading-6 text-zinc-100">
             {responseBody}
           </pre>

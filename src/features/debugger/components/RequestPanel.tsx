@@ -14,6 +14,7 @@ export interface RequestState {
 
 interface RequestPanelProps {
   request: RequestState;
+  isLoading: boolean;
   onMethodChange: (method: HttpMethod) => void;
   onUrlChange: (url: string) => void;
   onTabChange: (tab: RequestTab) => void;
@@ -41,6 +42,7 @@ const tabRows: Record<RequestTab, Array<[string, string, string]>> = {
 
 export function RequestPanel({
   request,
+  isLoading,
   onMethodChange,
   onUrlChange,
   onTabChange,
@@ -81,11 +83,15 @@ export function RequestPanel({
 
           <button
             type="button"
-            disabled
+            disabled={isLoading}
             onClick={onSend}
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white opacity-70"
+            className={`inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium text-white ${
+              isLoading
+                ? "cursor-not-allowed bg-zinc-500"
+                : "bg-zinc-900 hover:bg-zinc-800"
+            }`}
           >
-            Send
+            {isLoading ? "Sending..." : "Send"}
           </button>
         </div>
 
